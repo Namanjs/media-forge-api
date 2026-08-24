@@ -2,10 +2,15 @@ import { z } from "zod";
 
 const envSchema = z.object({
     PORT: z.coerce.number().int().min(1).max(65535).default(3000),
-    // z.coerce.number() converts "4000" into 4000
+    DATABASE_URL: z.url(),
 });
 
-function parseEnv(input: NodeJS.ProcessEnv) {
+type AppEnv = {
+    port: number;
+    databaseUrl: string;
+}
+
+function parseEnv(input: NodeJS.ProcessEnv): AppEnv {
     const parsed = envSchema.safeParse(input);
 
     if (!parsed.success) {
@@ -16,10 +21,12 @@ function parseEnv(input: NodeJS.ProcessEnv) {
 
     return {
         port: parsed.data.PORT,
-    }
+        databaseUrl: parsed.data.DATABASE_URL,
+    };
 }
 
-const env = parseEnv(process.env);
+function loadEnv(): AppEnv {
+    return parseEnv(process.env);
+}
 
-export { env, parseEnv };
-//env.port is a validated number
+export { loadEnv, parseEnv };
